@@ -3,8 +3,13 @@ import User from '../models/Users';
 
 export async function CreateUser(req: Request, res: Response) {
     const { id, firstname, lastname } = req.body
-    console.log(req.body);
     try {
+        if (!firstname || !lastname) {
+            res.status(404).json({
+                "message": "body payload undefined",
+                data: req.body
+            })
+        }
         let newUser = await User.create({
             id,
             firstname: firstname,
@@ -29,6 +34,7 @@ export async function CreateUser(req: Request, res: Response) {
 export async function getUsers(req: Request, res: Response) {
     try {
         const users = await User.findAll()
+
         res.status(200).json({
             data: users
         })
@@ -42,6 +48,7 @@ export async function getUsers(req: Request, res: Response) {
 export async function getOneUser(req: Request, res: Response) {
     const { id } = req.params
     try {
+
         const payload = await User.findOne({
             where: {
                 id: id
@@ -52,6 +59,10 @@ export async function getOneUser(req: Request, res: Response) {
                 data: payload
             })
         }
+        res.status(404).json({
+            "message": 'user not found',
+            data: payload
+        })
     } catch (ex) {
         console.log(`ex: ${ex}`);
         res.status(500).json({
@@ -70,10 +81,14 @@ export async function updateUser(req: Request, res: Response) {
                 firstname,
                 lastname
             })
+            res.status(200).json({
+                "message": "user updated sucessfully",
+                data: userToUpdate
+            })
         }
-        res.status(200).json({
-            "message": "user updated sucessfully",
-            data: userToUpdate
+        res.status(404).json({
+            "message": "user not found",
+            data: {}
         })
     } catch (ex) {
         console.log(`ex: ${ex}`);
@@ -86,18 +101,21 @@ export async function updateUser(req: Request, res: Response) {
 export async function deleteUser(req: Request, res: Response) {
     const { id } = req.params
     try {
-
         const deletedCount = await User.destroy({
             where: {
                 id: id
             }
         })
-        if (deletedCount) {
+        if (deletedCount > 0) {
             res.status(200).json({
                 "message": "user deleted user",
                 "count": deletedCount
             })
         }
+        res.status(404).json({
+            "message": "user not found",
+            data: {}
+        })
     } catch (ex) {
         console.log(`ex: ${ex}`);
         res.status(500).json({
